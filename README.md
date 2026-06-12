@@ -14,12 +14,12 @@
 
 ## Возможности
 
-- **Персональный подбор** — анализирует профиль пользователя и подбирает подходящие программы из базы
-- **RAG по реальным условиям** — AI работает только с актуальными данными программ, не придумывает
-- **Оценка вероятности одобрения** — для каждой программы выдаёт процент и объясняет почему
-- **Пошаговый план** — конкретные шаги что делать, какие документы собрать
-- **Уточняющий чат** — после анализа можно задать вопросы, история диалога сохраняется
-- **Admin Dashboard** — аналитика по пользователям в реальном времени из Firestore
+- **Персональный подбор** - анализирует профиль пользователя и подбирает подходящие программы из базы
+- **RAG по реальным условиям** - AI работает только с актуальными данными программ, не придумывает
+- **Оценка вероятности одобрения** - для каждой программы выдаёт процент и объясняет почему
+- **Пошаговый план** - конкретные шаги что делать, какие документы собрать
+- **Уточняющий чат** - после анализа можно задать вопросы, история диалога сохраняется
+- **Admin Dashboard** - аналитика по пользователям в реальном времени из Firestore
 
 **Программы в базе знаний:** 7-20-25 · Нурлы Жер · Бақытты Отбасы · Жас Отбасы · Арендное жильё КЖК
 
@@ -66,14 +66,14 @@ AI работает строго по базе знаний — не выдум�
 ```
 uy-ai-housing-navigator/
 ├── public/
-│   ├── index.html          — Главная страница с AI чатом
-│   ├── admin.html          — Дашборд аналитики
-│   ├── styles.css          — Стили
-│   ├── app.js              — Логика, AI, Firebase
-│   └── knowledge.js        — База знаний жилищных программ
-├── firebase.json           — Настройки Firebase Hosting
-├── firestore.rules         — Правила безопасности
-├── firestore.indexes.json  — Индексы Firestore
+│   ├── index.html          - Главная страница с AI чатом
+│   ├── admin.html          - Дашборд аналитики
+│   ├── styles.css          - Стили
+│   ├── app.js              - Логика, AI, Firebase
+│   └── knowledge.js        - База знаний жилищных программ
+├── firebase.json           - Настройки Firebase Hosting
+├── firestore.rules         - Правила безопасности
+├── firestore.indexes.json  - Индексы Firestore
 └── package.json
 ```
 
@@ -91,9 +91,9 @@ npm install
 
 ### 2. Получить ключи
 
-**Groq API** (бесплатно) — [console.groq.com](https://console.groq.com)
+**Groq API** (бесплатно) - [console.groq.com](https://console.groq.com)
 
-**Firebase** — [console.firebase.google.com](https://console.firebase.google.com) → создать проект → включить Firestore → скопировать конфиг
+**Firebase** - [console.firebase.google.com](https://console.firebase.google.com) → создать проект → включить Firestore → скопировать конфиг
 
 ### 3. Вставить ключи в `public/app.js`
 
@@ -125,23 +125,9 @@ firebase login
 firebase deploy
 ```
 
----
-
-## .gitignore
-
-```
-.env
-.firebase/
-node_modules/
-```
-
-> ⚠️ Не коммить API ключи в репозиторий. Для продакшна вынеси их в Firebase Functions.
-
----
-
 ## Автор
 
-**Bekarys Ibrashev** — [beka.ibrashev@gmail.com](mailto:beka.ibrashev@gmail.com)
+**Bekarys Ibrashev** [beka.ibrashev@gmail.com](mailto:beka.ibrashev@gmail.com)
 
 ---
 
