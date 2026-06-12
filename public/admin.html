@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ÚY — Аналитика | Admin Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-mark">ÚY</span>
+        <span class="logo-sub">Admin Dashboard</span>
+      </div>
+      <nav class="header-nav">
+        <span class="badge-kz" id="lastUpdate">Загрузка...</span>
+        <a href="index.html" class="admin-link">← Приложение</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="admin-layout">
+    <main class="admin-main">
+      <h1 class="admin-title">Аналитика запросов</h1>
+      <p class="admin-subtitle" id="adminSubtitle">Загружаю данные из Firebase...</p>
+
+      <!-- STATS GRID -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Всего пользователей</div>
+          <div class="stat-value" id="totalUsers">—</div>
+          <div class="stat-delta" id="usersToday">↑ загружаю...</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Всего запросов</div>
+          <div class="stat-value" id="totalRequests">—</div>
+          <div class="stat-delta">AI диалогов</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Средний доход</div>
+          <div class="stat-value" id="avgIncome">—</div>
+          <div class="stat-delta">тенге/мес</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Топ город</div>
+          <div class="stat-value" id="topCity" style="font-size: 20px">—</div>
+          <div class="stat-delta">по запросам</div>
+        </div>
+      </div>
+
+      <!-- CHARTS ROW -->
+      <div class="charts-row">
+        <!-- Goals distribution -->
+        <div class="chart-card">
+          <h3>🎯 Цели пользователей</h3>
+          <div class="bar-chart" id="goalsChart">
+            <div class="empty-state"><p>Загружаю...</p></div>
+          </div>
+        </div>
+
+        <!-- Cities distribution -->
+        <div class="chart-card">
+          <h3>🏙 По городам</h3>
+          <div class="city-grid" id="citiesChart">
+            <div style="color: var(--text-3); font-size: 13px">Загружаю...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AGE + EMPLOYMENT ROW -->
+      <div class="charts-row">
+        <div class="chart-card">
+          <h3>👤 Возрастные группы</h3>
+          <div class="bar-chart" id="ageChart">
+            <div class="empty-state"><p>Загружаю...</p></div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3>💼 Тип занятости</h3>
+          <div class="bar-chart" id="employmentChart">
+            <div class="empty-state"><p>Загружаю...</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- USERS TABLE -->
+      <div class="table-section">
+        <div class="table-header">
+          <h3>Последние пользователи</h3>
+          <span class="table-count" id="tableCount">Загружаю...</span>
+        </div>
+        <div id="usersTableWrapper">
+          <div class="empty-state">
+            <div style="font-size:32px">📊</div>
+            <p>Загружаю данные из Firestore...</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, orderBy, limit }
+      from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+    // ── Use same config as app.js ──────────────────────────
+    // In production, move this to a shared config file
+    const firebaseConfig = {
+      apiKey: "AIzaSyCbEPNhRIQchI_BemvIhzIvghbBSlldjUo",
+      authDomain: "ai-housing-navigator.firebaseapp.com",
+      projectId: "ai-housing-navigator",
+      storageBucket: "ai-housing-navigator.firebasestorage.app",
+      messagingSenderId: "957629999327",
+      appId: "1:957629999327:web:43120f0a0e91c0d8bb216a",
+      measurementId: "G-0RTRTCFTCP"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const GOAL_LABELS = {
+      buy: 'Купить жильё',
+      rent: 'Арендное жильё',
+      mortgage: 'Льготная ипотека',
+      waiting_list: 'Встать в очередь'
+    };
+    const EMPLOY_LABELS = {
+      employed: 'Официально работает',
+      self: 'Самозанятый',
+      state: 'Госслужащий',
+      unemployed: 'Не работает'
+    };
+
+    async function loadDashboard() {
+      try {
+        // Load users
+        const usersSnap = await getDocs(
+          query(collection(db, 'users'), orderBy('timestamp', 'desc'), limit(100))
+        );
+        const users = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        // Load requests
+        const reqSnap = await getDocs(
+          query(collection(db, 'requests'), orderBy('timestamp', 'desc'), limit(200))
+        );
+        const requests = reqSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        renderStats(users, requests);
+        renderGoalsChart(users);
+        renderCitiesChart(users);
+        renderAgeChart(users);
+        renderEmploymentChart(users);
+        renderTable(users);
+
+        document.getElementById('adminSubtitle').textContent =
+          `Обновлено: ${new Date().toLocaleString('ru')} · ${users.length} пользователей`;
+        document.getElementById('lastUpdate').textContent =
+          `Данные: Firestore live`;
+
+      } catch (err) {
+        console.error('Dashboard load error:', err);
+        document.getElementById('adminSubtitle').textContent =
+          `⚠️ Ошибка загрузки: ${err.message} — Проверьте Firebase конфиг`;
+
+        // Show demo data if Firebase not configured
+        renderDemoData();
+      }
+    }
+
+    function renderStats(users, requests) {
+      document.getElementById('totalUsers').textContent = users.length || '0';
+      document.getElementById('totalRequests').textContent = requests.length || '0';
+
+      // Avg income
+      const incomes = users.map(u => u.income || 0).filter(i => i > 0);
+      const avg = incomes.length ? Math.round(incomes.reduce((a,b) => a+b, 0) / incomes.length) : 0;
+      document.getElementById('avgIncome').textContent =
+        avg ? (avg / 1000).toFixed(0) + 'K' : '—';
+
+      // Top city
+      const cities = {};
+      users.forEach(u => { if (u.city) cities[u.city] = (cities[u.city] || 0) + 1; });
+      const topCity = Object.entries(cities).sort((a,b) => b[1]-a[1])[0];
+      document.getElementById('topCity').textContent = topCity ? topCity[0] : '—';
+
+      // Today
+      const today = new Date();
+      const todayCount = users.filter(u => {
+        if (!u.timestamp) return false;
+        const d = u.timestamp.toDate ? u.timestamp.toDate() : new Date(u.timestamp);
+        return d.toDateString() === today.toDateString();
+      }).length;
+      document.getElementById('usersToday').textContent = `↑ ${todayCount} сегодня`;
+    }
+
+    function renderGoalsChart(users) {
+      const counts = { buy: 0, rent: 0, mortgage: 0, waiting_list: 0 };
+      users.forEach(u => { if (u.goal && counts[u.goal] !== undefined) counts[u.goal]++; });
+      const max = Math.max(...Object.values(counts), 1);
+
+      document.getElementById('goalsChart').innerHTML = Object.entries(counts)
+        .sort((a,b) => b[1]-a[1])
+        .map(([key, count]) => `
+          <div class="bar-item">
+            <span class="bar-item-label">${GOAL_LABELS[key]}</span>
+            <div class="bar-item-track">
+              <div class="bar-item-fill" style="width: ${Math.round(count/max*100)}%"></div>
+            </div>
+            <span class="bar-item-count">${count}</span>
+          </div>`).join('');
+    }
+
+    function renderCitiesChart(users) {
+      const cities = {};
+      users.forEach(u => { if (u.city) cities[u.city] = (cities[u.city] || 0) + 1; });
+      const sorted = Object.entries(cities).sort((a,b) => b[1]-a[1]).slice(0, 8);
+
+      document.getElementById('citiesChart').innerHTML = sorted.length
+        ? sorted.map(([city, count]) => `
+            <div class="city-item">
+              🏙 ${city}
+              <span class="city-count">${count}</span>
+            </div>`).join('')
+        : '<p style="color: var(--text-3); font-size: 13px">Нет данных</p>';
+    }
+
+    function renderAgeChart(users) {
+      const buckets = { '18–24': 0, '25–34': 0, '35–44': 0, '45–54': 0, '55+': 0 };
+      users.forEach(u => {
+        const age = u.age || 0;
+        if (age < 25) buckets['18–24']++;
+        else if (age < 35) buckets['25–34']++;
+        else if (age < 45) buckets['35–44']++;
+        else if (age < 55) buckets['45–54']++;
+        else buckets['55+']++;
+      });
+      const max = Math.max(...Object.values(buckets), 1);
+
+      document.getElementById('ageChart').innerHTML = Object.entries(buckets)
+        .map(([label, count]) => `
+          <div class="bar-item">
+            <span class="bar-item-label">${label} лет</span>
+            <div class="bar-item-track">
+              <div class="bar-item-fill" style="width: ${Math.round(count/max*100)}%; background: linear-gradient(90deg, #f7a94f, #f75f5f)"></div>
+            </div>
+            <span class="bar-item-count">${count}</span>
+          </div>`).join('');
+    }
+
+    function renderEmploymentChart(users) {
+      const counts = { employed: 0, state: 0, self: 0, unemployed: 0 };
+      users.forEach(u => { if (u.employment && counts[u.employment] !== undefined) counts[u.employment]++; });
+      const max = Math.max(...Object.values(counts), 1);
+
+      document.getElementById('employmentChart').innerHTML = Object.entries(counts)
+        .sort((a,b) => b[1]-a[1])
+        .map(([key, count]) => `
+          <div class="bar-item">
+            <span class="bar-item-label">${EMPLOY_LABELS[key]}</span>
+            <div class="bar-item-track">
+              <div class="bar-item-fill" style="width: ${Math.round(count/max*100)}%; background: linear-gradient(90deg, #38d9a9, #4f8ef7)"></div>
+            </div>
+            <span class="bar-item-count">${count}</span>
+          </div>`).join('');
+    }
+
+    function renderTable(users) {
+      const recent = users.slice(0, 50);
+      document.getElementById('tableCount').textContent = `${users.length} записей`;
+
+      if (!recent.length) {
+        document.getElementById('usersTableWrapper').innerHTML =
+          '<div class="empty-state"><div style="font-size:32px">📭</div><p>Нет данных. Пользователи ещё не использовали приложение.</p></div>';
+        return;
+      }
+
+      document.getElementById('usersTableWrapper').innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Возраст</th>
+              <th>Доход (₸)</th>
+              <th>Город</th>
+              <th>Семья</th>
+              <th>Жильё</th>
+              <th>Цель</th>
+              <th>Занятость</th>
+              <th>Дата</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${recent.map((u, i) => `
+              <tr>
+                <td style="color: var(--text-3)">${i+1}</td>
+                <td>${u.age || '—'}</td>
+                <td>${u.income ? Number(u.income).toLocaleString('ru') : '—'}</td>
+                <td>${u.city || '—'}</td>
+                <td>${u.children ? `${u.children} дет.` : '—'}</td>
+                <td>${formatHousing(u.hasHousing)}</td>
+                <td><span class="goal-badge">${GOAL_LABELS[u.goal] || u.goal || '—'}</span></td>
+                <td>${EMPLOY_LABELS[u.employment] || '—'}</td>
+                <td>${formatDate(u.timestamp)}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`;
+    }
+
+    function formatHousing(v) {
+      return { no: 'Нет', yes: 'Есть', renting: 'Аренда' }[v] || '—';
+    }
+
+    function formatDate(ts) {
+      if (!ts) return '—';
+      try {
+        const d = ts.toDate ? ts.toDate() : new Date(ts);
+        return d.toLocaleDateString('ru', { day: '2-digit', month: '2-digit' });
+      } catch { return '—'; }
+    }
+
+    // Demo data fallback if Firebase not connected
+    function renderDemoData() {
+      const demo = Array.from({length: 12}, (_, i) => ({
+        age: 25 + Math.floor(Math.random()*20),
+        income: (100+Math.floor(Math.random()*250))*1000,
+        city: ['Алматы','Астана','Шымкент','Атырау','Актобе'][Math.floor(Math.random()*5)],
+        children: Math.floor(Math.random()*4),
+        hasHousing: ['no','renting','no'][Math.floor(Math.random()*3)],
+        goal: ['buy','mortgage','rent','waiting_list'][Math.floor(Math.random()*4)],
+        employment: ['employed','state','self'][Math.floor(Math.random()*3)],
+        timestamp: null
+      }));
+
+      document.getElementById('adminSubtitle').textContent =
+        '⚠️ Firebase не настроен — показаны демо-данные';
+      renderStats(demo, []);
+      renderGoalsChart(demo);
+      renderCitiesChart(demo);
+      renderAgeChart(demo);
+      renderEmploymentChart(demo);
+      renderTable(demo);
+    }
+
+    loadDashboard();
+  </script>
+</body>
+</html>

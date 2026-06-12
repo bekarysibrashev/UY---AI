@@ -1,0 +1,25 @@
+{
+  "name": "uy-ai-housing-navigator",
+  "version": "1.0.0",
+  "description": "AI Housing Navigator for Kazakhstan — MVP",
+  "scripts": {
+    "dev": "npx serve public -p 3000",
+    "deploy": "firebase deploy --only hosting",
+    "deploy:rules": "firebase deploy --only firestore:rules"
+  },
+  "dependencies": {
+    "firebase": "^12.14.0"
+  },
+  "devDependencies": {
+    "firebase-tools": "^13.0.0",
+    "serve": "^14.0.0"
+  },
+  "keywords": [
+    "housing",
+    "kazakhstan",
+    "ai",
+    "firebase"
+  ],
+  "author": "ÚY Team",
+  "license": "MIT"
+}

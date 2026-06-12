@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "firebase deploy --only firestore:rules": "ai-housing-navigator"
+  },
+  "targets": {},
+  "etags": {}
+}

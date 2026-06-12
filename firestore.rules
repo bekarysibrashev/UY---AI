@@ -1,0 +1,25 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Users collection — anyone can write (for MVP), only read own data
+    // In production: add Firebase Auth and restrict reads
+    match /users/{userId} {
+      allow create: if true;
+      allow read: if true;  // Lock this down with Auth in production
+      allow update, delete: if false;
+    }
+
+    // Requests — write-only for users, full read for admin
+    match /requests/{requestId} {
+      allow create: if true;
+      allow read: if true;
+      allow update, delete: if false;
+    }
+
+    // Analytics — read/write for app
+    match /analytics/{docId} {
+      allow read, write: if true;
+    }
+  }
+}

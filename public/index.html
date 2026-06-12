@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ÚY — AI Жилищный Навигатор Казахстана</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-mark">ÚY</span>
+        <span class="logo-sub">AI Жилищный Навигатор</span>
+      </div>
+      <nav class="header-nav">
+        <span class="badge-kz">🇰🇿 Казахстан</span>
+        <a href="admin.html" class="admin-link">Аналитика →</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MAIN LAYOUT -->
+  <main class="app-layout">
+
+    <!-- LEFT PANEL: User Form -->
+    <aside class="panel panel-form">
+      <div class="panel-header">
+        <h2>Ваш профиль</h2>
+        <p>Заполните данные — AI подберёт программы лично для вас</p>
+      </div>
+
+      <div class="form-body" id="userForm">
+
+        <div class="field-group">
+          <label>Возраст</label>
+          <div class="input-row">
+            <input type="number" id="age" placeholder="Например: 28" min="18" max="70" />
+            <span class="unit">лет</span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>Ежемесячный доход</label>
+          <div class="input-row">
+            <input type="number" id="income" placeholder="150 000" />
+            <span class="unit">₸</span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>Город</label>
+          <select id="city">
+            <option value="">Выберите город</option>
+            <option>Алматы</option>
+            <option>Астана</option>
+            <option>Шымкент</option>
+            <option>Атырау</option>
+            <option>Актобе</option>
+            <option>Другой город</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label>Семейное положение</label>
+          <div class="pill-group" id="maritalStatus">
+            <button class="pill" data-value="single">Не женат/не замужем</button>
+            <button class="pill" data-value="married">Женат/замужем</button>
+            <button class="pill" data-value="divorced">Разведён/разведена</button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>Дети</label>
+          <div class="input-row">
+            <input type="number" id="children" placeholder="0" min="0" max="10" />
+            <span class="unit">чел.</span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>Есть своё жильё?</label>
+          <div class="pill-group" id="hasHousing">
+            <button class="pill" data-value="no">Нет</button>
+            <button class="pill" data-value="yes">Есть</button>
+            <button class="pill" data-value="renting">Снимаю</button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>Цель</label>
+          <div class="pill-group" id="goal">
+            <button class="pill" data-value="buy">Купить жильё</button>
+            <button class="pill" data-value="rent">Арендное жильё</button>
+            <button class="pill" data-value="mortgage">Льготная ипотека</button>
+            <button class="pill" data-value="waiting_list">Очередь</button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>Трудоустройство</label>
+          <div class="pill-group" id="employment">
+            <button class="pill" data-value="employed">Официально работаю</button>
+            <button class="pill" data-value="self">Самозанятый</button>
+            <button class="pill" data-value="state">Госслужащий</button>
+            <button class="pill" data-value="unemployed">Не работаю</button>
+          </div>
+        </div>
+
+        <button class="btn-analyze" id="analyzeBtn" onclick="analyzeUser()">
+          <span class="btn-icon">🔍</span>
+          Найти мои программы
+        </button>
+
+        <div class="disclaimer">
+          Данные используются только для подбора программ. Не сохраняются без вашего согласия.
+        </div>
+      </div>
+    </aside>
+
+    <!-- RIGHT PANEL: Chat + Results -->
+    <section class="panel panel-chat">
+      <!-- Welcome State -->
+      <div id="welcomeState" class="welcome-state">
+        <div class="welcome-icon">🏠</div>
+        <h1>Найдите своё жильё<br/>в Казахстане</h1>
+        <p>ÚY анализирует ваш профиль и подбирает государственные жилищные программы — Нурлы Жер, Бақытты Отбасы, 7-20-25 и другие. Бесплатно, быстро, понятно.</p>
+        <div class="program-chips">
+          <span class="chip">Нурлы Жер</span>
+          <span class="chip">7-20-25</span>
+          <span class="chip">Бақытты Отбасы</span>
+          <span class="chip">Жас Отбасы</span>
+          <span class="chip">Арендное жильё</span>
+        </div>
+        <p class="welcome-hint">← Заполните форму слева, чтобы начать</p>
+      </div>
+
+      <!-- Loading State -->
+      <div id="loadingState" class="loading-state hidden">
+        <div class="loading-orb"></div>
+        <p>AI анализирует ваши данные...</p>
+        <div class="loading-steps">
+          <div class="step active" id="step1">Проверяю критерии программ</div>
+          <div class="step" id="step2">Рассчитываю вероятность одобрения</div>
+          <div class="step" id="step3">Формирую план действий</div>
+        </div>
+      </div>
+
+      <!-- Results State -->
+      <div id="resultState" class="result-state hidden">
+        <div class="result-header">
+          <span class="result-tag">Анализ завершён</span>
+          <button class="btn-reset" onclick="resetForm()">Новый анализ</button>
+        </div>
+        <div id="resultContent" class="result-content"></div>
+      </div>
+
+      <!-- Chat Follow-up -->
+      <div id="chatSection" class="chat-section hidden">
+        <div class="chat-divider">
+          <span>Задайте уточняющий вопрос</span>
+        </div>
+        <div id="chatMessages" class="chat-messages"></div>
+        <div class="chat-input-row">
+          <input type="text" id="chatInput" placeholder="Например: Какие документы нужны для 7-20-25?" onkeydown="if(event.key==='Enter') sendChat()" />
+          <button onclick="sendChat()" class="btn-send">→</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Firebase SDK -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>
